@@ -1,7 +1,30 @@
 extends KinematicBody2D
 
-# Called when the node enters the scene tree for the first time.
+const MAX_SPEED = 80
+const ACCELERATION = 750
+const FRICTION = 750
+const ROLL_SPEED = MAX_SPEED * 1.25
+
+enum PlayerState {
+	MOVE,
+	ROLL,
+	ATTACK
+}
+
+var state = PlayerState.MOVE
+var velocity = Vector2.ZERO
+var roll_vector = Vector2.LEFT
+
+var stats = PlayerStats
+
+onready var animation_player = $AnimationPlayer
+onready var animation_tree = $AnimationTree
+onready var animation_state = animation_tree.get("parameters/playback")
+onready var swordHitBox = $HitboxPivot/SwordHitbox
+onready var hurtBox = $Hurtbox
+
 func _ready():
+	stats.connect("no_health", self, "queue_free")
 	animation_tree.active = true
 	#Set Startup direction so that animations are in sync before the player moves the first time
 	animation_tree.set("parameters/Idle/blend_position", roll_vector)
@@ -10,40 +33,20 @@ func _ready():
 	animation_tree.set("parameters/Roll/blend_position", roll_vector)
 	swordHitBox.knockback_vector = roll_vector
 
-const MAX_SPEED = 80
-const ACCELERATION = 750
-const FRICTION = 750
-const ROLL_SPEED = MAX_SPEED * 1.25
-
-enum {
-	MOVE,
-	ROLL,
-	ATTACK
-}
-
-var state = MOVE
-var velocity = Vector2.ZERO
-var roll_vector = Vector2.LEFT
-
-onready var animation_player = $AnimationPlayer
-onready var animation_tree = $AnimationTree
-onready var animation_state = animation_tree.get("parameters/playback")
-onready var swordHitBox = $HitboxPivot/SwordHitbox
-
 func _physics_process(delta):
 	match state:
-		MOVE:
+		PlayerState.MOVE:
 			move_state(delta)
-		ROLL:
+		PlayerState.ROLL:
 			roll_state(delta)
-		ATTACK:
+		PlayerState.ATTACK:
 			attack_state(delta)
 
 
 func move_state(delta):	
 	var input_vector = Vector2.ZERO
-	input_vector.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
-	input_vector.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
+	input_vector.x = Input.get_action_strength(PlayerInput.right()) - Input.get_action_strength(PlayerInput.left())
+	input_vector.y = Input.get_action_strength(PlayerInput.down()) - Input.get_action_strength(PlayerInput.up())
 	
 	if input_vector != Vector2.ZERO:
 		input_vector = input_vector.normalized()
@@ -61,11 +64,11 @@ func move_state(delta):
 	
 	move()
 	
-	if Input.is_action_just_pressed("roll"):
-		state = ROLL
+	if Input.is_action_just_pressed(PlayerInput.roll()):
+		state = PlayerState.ROLL
 	
-	if Input.is_action_just_pressed("attack"):
-		state = ATTACK
+	if Input.is_action_just_pressed(PlayerInput.attack()):
+		state = PlayerState.ATTACK
 
 func attack_state(delta):
 	velocity = Vector2.ZERO
@@ -84,11 +87,14 @@ func move():
 	
 func roll_animation_finished():
 	velocity = velocity * .8
-	state = MOVE
+	state = PlayerState.MOVE
 
 
 func attack_animation_finished():
-	state = MOVE
+	state = PlayerState.MOVE
 
 
-
+func _on_Hurtbox_area_entered(area):
+	stats.health -= 1
+	hurtBox.start_invinvibility(0.5)
+	hurtBox.create_hit_effect()

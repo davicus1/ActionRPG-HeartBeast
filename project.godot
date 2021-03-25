@@ -30,6 +30,11 @@ config/name="ActionRPG-HeartBeast"
 run/main_scene="res://World.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+PlayerInput="*res://PlayerInput.gd"
+PlayerStats="*res://Player/PlayerStats.tscn"
+
 [display]
 
 window/size/width=320
