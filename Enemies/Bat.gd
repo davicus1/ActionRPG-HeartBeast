@@ -54,7 +54,7 @@ func _on_Hurtbox_area_entered(area):
 	knockback = area.knockback_vector * 130
 	print("Bat: OW!!!")
 	stats.health -= area.damage
-	hurtBox.start_invinvibility(1.0)
+	hurtBox.start_invinvibility(0.5)
 	hurtBox.create_hit_effect()
 	
 
