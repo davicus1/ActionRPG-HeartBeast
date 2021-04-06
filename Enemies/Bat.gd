@@ -6,7 +6,7 @@ var knockback = Vector2.ZERO
 var velocity = Vector2.ZERO
 
 export var ACCELLERATION = 300
-export var MAX_SPEED = 50
+export var MAX_SPEED = 60
 export var FRICTION = 200
 
 enum {
@@ -21,6 +21,7 @@ onready var sprite = $AnimatedSprite
 onready var stats = $Stats
 onready var playerDetectionZone = $PlayerDetectionZone
 onready var hurtBox = $Hurtbox
+onready var softCollision = $SoftCollision
 
 func _ready():
 	print("%s/%s" % [stats.health,stats.max_health])
@@ -42,6 +43,8 @@ func _physics_process(delta):
 			else:
 				state = IDLE
 			sprite.flip_h = velocity.x < 0
+	if softCollision.is_colliding():
+		velocity += softCollision.get_push_vector() * delta * 400
 	velocity = move_and_slide(velocity)
 
 
