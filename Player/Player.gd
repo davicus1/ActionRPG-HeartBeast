@@ -24,6 +24,8 @@ onready var swordHitBox = $HitboxPivot/SwordHitbox
 onready var hurtBox = $Hurtbox
 
 func _ready():
+	#Set Starting Random SEED. Remove for TESTING
+	randomize()
 	stats.connect("no_health", self, "queue_free")
 	animation_tree.active = true
 	#Set Startup direction so that animations are in sync before the player moves the first time
